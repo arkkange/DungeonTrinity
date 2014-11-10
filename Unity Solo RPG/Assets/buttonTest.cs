@@ -15,6 +15,6 @@ public class buttonTest : MonoBehaviour {
 
     public void ButtonTest(string str)
     {
-        Debug.Log(str);
+        Debug.Log("julien");
     }
 }
