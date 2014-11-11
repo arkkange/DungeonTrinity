@@ -5,7 +5,7 @@ public class buttonTest : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-	debug.log("test");
+	Debug.log("test");
 	}
 	
 	// Update is called once per frame
