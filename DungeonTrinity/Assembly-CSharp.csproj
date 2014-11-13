@@ -46,7 +46,7 @@
 	</Reference>
   </ItemGroup>
   <ItemGroup>
-     <Compile Include="Assets\Scripts\Skills.cs" />
+     <Compile Include="Assets\Scripts\Skill.cs" />
      <Compile Include="Assets\Scripts\TimeLine.cs" />
  <Reference Include="UnityEngine.UI">
  <HintPath>D:/UNITY4.3/Editor/Data/UnityExtensions/Unity/GUISystem/4.6.0/UnityEngine.UI.dll</HintPath>
