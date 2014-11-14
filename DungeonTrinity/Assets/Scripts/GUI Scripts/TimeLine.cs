@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.UI;
 
 
 public class TimeLine : MonoBehaviour {
@@ -10,11 +11,15 @@ public class TimeLine : MonoBehaviour {
     int                     _actualTime = 0;
 
     List<Skill>             _skillList = new List<Skill>();
-    List<RectTransform>     _portionsTimeLine   = new List<RectTransform>();
+    List<RectTransform>     _portionsTimeLine = new List<RectTransform>();
+    List<RectTransform>     _textPortionTimeLine = new List<RectTransform>();
 
     [SerializeField]
     RectTransform           _timeLinePanel;
     float                   _actualAnchorX = 0;
+
+    [SerializeField]
+    GameObject              _cancelButton;
 
 
     //bar panels
@@ -31,6 +36,11 @@ public class TimeLine : MonoBehaviour {
     RectTransform           _panelPrefabForComp5;  
 
     //text numbers
+
+    [SerializeField]
+    RectTransform           _textPrefab;
+
+
     [SerializeField]
     RectTransform           _textNumber1;
     [SerializeField]
@@ -128,7 +138,6 @@ public class TimeLine : MonoBehaviour {
 
             _newPortion.anchoredPosition = new Vector2(0.5f, 0.5f);
 
-            //set the position
             _newPortion.localPosition = new Vector3(0, 0, 0);
             _newPortion.sizeDelta = new Vector2(0, 0);          //The normalized position in the parent RectTransform that the lower left corner is anchored to.
             _newPortion.offsetMax = new Vector2(0, 0);          //The offset of the upper right corner of the rectangle relative to the upper right anchor.
@@ -137,14 +146,42 @@ public class TimeLine : MonoBehaviour {
             //anchors positions according to the actual X anchor
             _newPortion.anchorMin = new Vector2(_actualAnchorX, 0);
             _newPortion.anchorMax = new Vector2(_actualAnchorX + (newSkill._castTime / 10), 1);
-            _actualAnchorX = _actualAnchorX + (newSkill._castTime / 10);
+            
 
             _portionsTimeLine.Add(_newPortion);
 
+
+
+
+            //creation of the text indicator
+            RectTransform newText = Instantiate(_textPrefab) as RectTransform;
+
+            //fill the image to the bar
+            newText.parent = _timeLinePanel;
+            newText.active = true;
+            newText.localScale = new Vector3(1, 1, 1);
+
+            newText.anchoredPosition = new Vector2(0.5f, 0.5f);
+            newText.localPosition = new Vector3(5, 5, 0);
+            newText.sizeDelta = new Vector2(5, 5);
+            newText.offsetMax = new Vector2(0, 0);
+            newText.offsetMin = new Vector2(0, 0);
+
+            //anchors positions according to the actual X anchor
+            newText.anchorMin = new Vector2(_actualAnchorX, 0);
+            newText.anchorMax = new Vector2(_actualAnchorX + (newSkill._castTime / 10), 1);
+            
+            //maj anchors
+            _actualAnchorX = _actualAnchorX + (newSkill._castTime / 10);
+
+            //fill the correct text then add to the list
+            newText.GetComponent<Text>().text = (string)((int)(_actualAnchorX*10) + "");
+            _textPortionTimeLine.Add(newText);
+
             //mise a jour du temps de cast total
             _actualTime += (int)newSkill._castTime;
-            stateNumber(_actualTime);
 
+            _cancelButton.SetActive(true);
         }
         
     }
@@ -155,68 +192,30 @@ public class TimeLine : MonoBehaviour {
     {
 
         RectTransform   portionToDelete;
+        RectTransform   TextToDelete;
 
         //mise a jour du temps de cast total
-        stateNumber(_actualTime);
         _actualTime -= (int)_skillList[_skillList.Count - 1]._castTime;
 
         //suppression de la liste des skills
         _skillList.RemoveAt(_skillList.Count - 1);
 
-        //supression de l'object de la time line
+        //supression de l'object de la timeLine
         portionToDelete = _portionsTimeLine[_portionsTimeLine.Count - 1];
         Destroy(portionToDelete.gameObject);
-
-        //supression de la liste des portions de la timeline
         _portionsTimeLine.RemoveAt(_portionsTimeLine.Count - 1);
 
-    }
+        //supression du chiffre de la portion
+        TextToDelete = _textPortionTimeLine[_textPortionTimeLine.Count - 1];
+        Destroy(TextToDelete.gameObject);
+        _textPortionTimeLine.RemoveAt(_textPortionTimeLine.Count - 1);
 
-
-    /***********************************************************\
-    |   stateNumber : active ou desactive le nombre en parametre|
-    \***********************************************************/
-    void stateNumber(int number)
-    {
-        switch (number)
+        //cas ou la liste est vide
+        if (_skillList.Count == 0)
         {
-            case 1:
-                 _textNumber1.active = (_textNumber1.active == true) ? false : true;
-                    break;
-            case 2:
-                 _textNumber2.active = (_textNumber2.active == true) ? false : true;
-                 break;
-            case 3:
-                 _textNumber3.active = (_textNumber3.active == true) ? false : true;
-                 break;
-            case 4:
-                 _textNumber4.active = (_textNumber4.active == true) ? false : true;
-                 break;
-            case 5:
-                 _textNumber5.active = (_textNumber5.active == true) ? false : true;
-                 break;
-            case 6:
-                 _textNumber6.active = (_textNumber6.active == true) ? false : true;
-              break;
-            case 7:
-                _textNumber7.active = (_textNumber7.active == true) ? false : true;
-             break;
-            case 8:
-                _textNumber8.active = (_textNumber8.active == true) ? false : true;
-                 break;
-            case 9:
-                 _textNumber9.active = (_textNumber9.active == true) ? false : true;
-                break;
-            case 10:
-                _textNumber10.active = (_textNumber10.active == true) ? false : true;
-                break;
-
-            default:
-                Debug.Log("an error as occured on the textnumber choice");
-                break;
+            _cancelButton.SetActive(false);
         }
-    }
 
-    // TODO ajouter le boutton d'annulation
+    }
 
 }
