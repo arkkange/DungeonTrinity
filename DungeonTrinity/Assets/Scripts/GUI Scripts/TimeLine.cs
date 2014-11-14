@@ -6,6 +6,10 @@ using UnityEngine.UI;
 
 public class TimeLine : MonoBehaviour {
 
+
+    [SerializeField]
+    Transform   MessageManager;
+
     [SerializeField]
     int                     _maxTime = 10;
     int                     _actualTime = 0;
@@ -73,6 +77,8 @@ public class TimeLine : MonoBehaviour {
        addSkill(s);
        s = new Skill(3, new Vector3(0, 0, 0), Quaternion.identity, 3, 20);
        addSkill(s);
+       s = new Skill(3, new Vector3(0, 0, 0), Quaternion.identity, 3, 20);
+       addSkill(s);
 
 
 	}
@@ -93,9 +99,7 @@ public class TimeLine : MonoBehaviour {
 
         if ( (newSkill._castTime + _actualTime) > _maxTime )
         {
-            // TODO affichage "l'action que vous tentez d'ajouter ne peut pas entrer dans la timeline"
-            Debug.Log((_actualTime + newSkill._castTime) + ">" + (_maxTime));
-
+            MessageManager.GetComponent<MessageManager>().CreateShortMessage(2, "Vous ne pouvez pas ajouter cette compétence a votre TimeLine");
         }
         else
         {

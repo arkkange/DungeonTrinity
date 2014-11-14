@@ -50,7 +50,7 @@
      <Compile Include="Assets\Scripts\GUI Scripts\ActionBar.cs" />
      <Compile Include="Assets\Scripts\GUI Scripts\GameObjectEvents.cs" />
      <Compile Include="Assets\Scripts\GUI Scripts\TimeLine.cs" />
-     <Compile Include="Assets\Scripts\MessageScripts\MassageManager.cs" />
+     <Compile Include="Assets\Scripts\MessageScripts\MessageManager.cs" />
      <Compile Include="Assets\Scripts\Skill.cs" />
  <Reference Include="UnityEngine.UI">
  <HintPath>D:/UNITY4.3/Editor/Data/UnityExtensions/Unity/GUISystem/4.6.0/UnityEngine.UI.dll</HintPath>

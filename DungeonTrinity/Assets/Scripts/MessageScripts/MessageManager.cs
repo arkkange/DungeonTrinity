@@ -2,16 +2,14 @@
 using System.Collections;
 using UnityEngine.UI;
 
-public class MassageManager : MonoBehaviour {
+public class MessageManager : MonoBehaviour {
 
 
     [SerializeField]
     RectTransform _myCanevas;
 
-    [SerializeField]
-
 	void Start () {
-        CreateShortMessage(5, "bonjour Finn!");
+        
 	}
 
     public void CreateShortMessage(float time, string message)
@@ -27,7 +25,7 @@ public class MassageManager : MonoBehaviour {
 
         yield return new WaitForSeconds(seconds);
 
-        Destroy(myMessageInterface);
+        Destroy(myMessageInterface.gameObject);
 
     }
 
