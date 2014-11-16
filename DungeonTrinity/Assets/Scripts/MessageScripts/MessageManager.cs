@@ -2,7 +2,8 @@
 using System.Collections;
 using UnityEngine.UI;
 
-public class MassageManager : MonoBehaviour {
+public class MessageManager : MonoBehaviour
+{
 
 
     [SerializeField]
@@ -27,7 +28,7 @@ public class MassageManager : MonoBehaviour {
 
         yield return new WaitForSeconds(seconds);
 
-        Destroy(myMessageInterface);
+        Destroy(myMessageInterface.gameObject);
 
     }
 
