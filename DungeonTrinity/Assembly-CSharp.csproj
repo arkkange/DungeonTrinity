@@ -52,6 +52,7 @@
      <Compile Include="Assets\Scripts\GUI Scripts\TimeLine.cs" />
      <Compile Include="Assets\Scripts\MessageScripts\MessageManager.cs" />
      <Compile Include="Assets\Scripts\Skill.cs" />
+     <Compile Include="Assets\Scripts\UtilityScripts\PlayerColliderScript.cs" />
  <Reference Include="UnityEngine.UI">
  <HintPath>D:/UNITY4.3/Editor/Data/UnityExtensions/Unity/GUISystem/4.6.0/UnityEngine.UI.dll</HintPath>
  </Reference>
