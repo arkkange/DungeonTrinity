@@ -1,8 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class PlayerColliderManager : MonoBehaviour
-{
+public class HealthManager : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
