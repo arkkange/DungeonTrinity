@@ -96,7 +96,7 @@ public class PlayerAttackResolver : MonoBehaviour {
             //    T.GetComponent<HealthManager>().damage(mySkill._damageValue);
                 
             //}
-            for (int i = 0; i < (_TransformsHits.Count); i++)
+            for (int i = 0; i < _TransformsHits.Count; i++)
             {
                 _TransformsHits[i].GetComponent<HealthManager>().damage(mySkill._damageValue);
             }
@@ -106,17 +106,17 @@ public class PlayerAttackResolver : MonoBehaviour {
             if (mySkill._isResurection)
             {
                 //case resurection
-                foreach (Transform T in _TransformsHits)
+                for (int i = 0; i < _TransformsHits.Count; i++)
                 {
-                    T.GetComponent<HealthManager>().revive(mySkill._healValue);
+                    _TransformsHits[i].GetComponent<HealthManager>().revive(mySkill._healValue);
                 }
             }
             else
             {
                 //case heal
-                foreach (Transform T in _TransformsHits)
+                for (int i = 0; i < _TransformsHits.Count; i++)
                 {
-                    T.GetComponent<HealthManager>().heal(mySkill._healValue);
+                    _TransformsHits[i].GetComponent<HealthManager>().heal(mySkill._healValue);
                 }
             }
         }
