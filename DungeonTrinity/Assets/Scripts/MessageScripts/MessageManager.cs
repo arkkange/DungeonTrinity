@@ -2,17 +2,14 @@
 using System.Collections;
 using UnityEngine.UI;
 
-public class MessageManager : MonoBehaviour
-{
+public class MessageManager : MonoBehaviour {
 
 
     [SerializeField]
     RectTransform _myCanevas;
 
-    [SerializeField]
-
 	void Start () {
-        CreateShortMessage(5, "bonjour Finn!");
+        
 	}
 
     public void CreateShortMessage(float time, string message)

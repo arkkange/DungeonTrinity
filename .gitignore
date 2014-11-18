@@ -201,3 +201,7 @@ UpgradeLog*.htm
 
 # Microsoft Fakes
 FakesAssemblies/
+DungeonTrinity/Assembly-CSharp.csproj
+DungeonTrinity/Assembly-CSharp-vs.csproj
+DungeonTrinity/Assembly-CSharp-vs.csproj
+DungeonTrinity/Assembly-CSharp.csproj
