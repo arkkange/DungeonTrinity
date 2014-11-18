@@ -4,22 +4,34 @@ using System.Collections.Generic;
 
 public class PlayerColliderScript : MonoBehaviour {
 
-    List<Transform>     _TransformListOfCollisions = new List<Transform>();
+    public List<Transform> _TransformListOfCollisions = new List<Transform>();
 
     /***********************************************************\
     |   OnTriggerEnter : recupère la liste des collisions       |
     \***********************************************************/
-    void OnTriggerEnter(Collider other)
+    void OnCollisionEnter(Collision collision)
     {
-        _TransformListOfCollisions.Add(other.transform);
+        if (!_TransformListOfCollisions.Contains(collision.gameObject.transform))
+        {
+            _TransformListOfCollisions.Add(collision.gameObject.transform);
+            if (collision.gameObject.tag != "Player")
+            {
+                Debug.Log("enter : " + collision.gameObject.tag);
+            }
+            
+         }
     }
 
     /***********************************************************\
     |   OnTriggerEnter : recupère la liste des collisions       |
     \***********************************************************/
-    void OnTriggerExit(Collider other)
+    void OnCollisionExit(Collision collision)
     {
-        _TransformListOfCollisions.Remove(other.transform);
+        _TransformListOfCollisions.Remove(collision.gameObject.transform);
+        if (collision.gameObject.tag != "Player")
+        {
+            Debug.Log("Exit : " + collision.gameObject.tag);
+        }
     }
 
     /***********************************************************************\
