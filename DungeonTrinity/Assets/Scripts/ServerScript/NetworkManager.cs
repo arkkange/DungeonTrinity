@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
+using System.Collections.Generic;
 
 public class NetworkManager : MonoBehaviour
 {
@@ -30,6 +31,9 @@ public class NetworkManager : MonoBehaviour
     private bool _mapChoose = false;
     private bool _isReadytoLaunch = false;
     private bool _isReadytoInstanciate = false;
+    private bool _connected = false;
+    private bool _lobbyToinit = true;
+
 
     private GameObject _buttonWarriorG;
     private GameObject _buttonPriestG;
@@ -47,7 +51,7 @@ public class NetworkManager : MonoBehaviour
     private GameObject _player3name;
     private GameObject _buttonValLobby;
 
-
+    List<string> _listPlayers = new List<string>();
 
     /*********************************************************************\
     |   Start : Initialisation								       		   |
@@ -72,12 +76,13 @@ public class NetworkManager : MonoBehaviour
 
 
 
-
+        
         //Boutons pour Choisir une Map
         _buttonMap1G = GameObject.Find("ButtonMap1");
         Button buttonMap1 = _buttonMap1G.GetComponent<Button>();
         buttonMap1.onClick.AddListener(() => { setUpMap(1); });
 
+        /*
         _buttonMap2G = GameObject.Find("ButtonMap2");
         Button buttonMap2 = _buttonMap2G.GetComponent<Button>();
         buttonMap2.onClick.AddListener(() => { setUpMap(2); });
@@ -85,7 +90,7 @@ public class NetworkManager : MonoBehaviour
         _buttonMap3G = GameObject.Find("ButtonMap3");
         Button buttonMap3 = _buttonMap3G.GetComponent<Button>();
         buttonMap3.onClick.AddListener(() => { setUpMap(3); });
-
+        */
 
         //Boutton pour chercher une partie
         _buttonValG = GameObject.Find("ButtonValider");
@@ -118,8 +123,6 @@ public class NetworkManager : MonoBehaviour
     \*********************************************************************/
     void Update()
     {
-        Debug.Log(MasterServer.PollHostList().Length);
-
         if (_isRefreshingHostList && MasterServer.PollHostList().Length > 0)
         {
             _isRefreshingHostList = false;
@@ -132,20 +135,63 @@ public class NetworkManager : MonoBehaviour
             Vector3 buttonV_position = new Vector3(_buttonValG.transform.position.x, 50.0f, _buttonValG.transform.position.z);
             _buttonValG.transform.position = buttonV_position;
         }
-        if (Network.isServer && _player1name.active && _player2name.active && _player3name.active)
+
+        //Si on est le serveur et le nombre de joueurs est de 3
+        if (Network.isServer && _listPlayers.Count == 3)
         {
             _buttonValLobby.SetActive(true);
-            _isReadytoLaunch = true;
-        }
-        if (_isReadytoInstanciate)
-        {
-            spawnPlayer();
         }
 
+        if (Network.isClient && _isReadytoLaunch)
+        {
+            spawnPlayer();
+            _isReadytoLaunch = false;
+        }
+
+        //boucle test listPlayer
+        foreach (string name in _listPlayers)
+        {
+            Debug.Log(name);
+        }
+
+        if (_connected && Network.isServer)
+        {
+            string stringlistPlayer = string.Join(",", _listPlayers.ToArray());
+            networkView.RPC("server_PlayerJoin", RPCMode.Others, stringlistPlayer);
+            _connected = false;
+        }
+
+        if (_listPlayers.Count >= 1 && _lobbyToinit)
+        {
+            _canvasLobby.SetActive(true);
+            if (_listPlayers.Count == 1)
+            {
+                _canvasLobby.SetActive(true);
+                _lobbyName.GetComponent<Text>().text = _mapName;
+                _player1name.SetActive(true);
+                _player1name.GetComponent<Text>().text = GetName(_listPlayers[0]);
+            }else if (_listPlayers.Count == 2)
+            {
+                _lobbyName.GetComponent<Text>().text = _mapName;
+                _player1name.SetActive(true);
+                _player1name.GetComponent<Text>().text = GetName(_listPlayers[0]);
+                _player2name.SetActive(true);
+                _player2name.GetComponent<Text>().text = GetName(_listPlayers[1]);
+            }else if (_listPlayers.Count == 3)
+            {
+                _lobbyName.GetComponent<Text>().text = _mapName;
+                _player1name.SetActive(true);
+                _player1name.GetComponent<Text>().text = GetName(_listPlayers[0]);
+                _player2name.SetActive(true);
+                _player2name.GetComponent<Text>().text = GetName(_listPlayers[1]);
+                _player3name.SetActive(true);
+                _player3name.GetComponent<Text>().text = GetName(_listPlayers[2]);
+            }
+        }
     }
 
     /*********************************************************************\
-    |   setUpCharacter : crée un joueur de type passé en paramètre	       |
+    | setUpCharacter : instancie la variable correspondant au nom du joueur|
     \*********************************************************************/
     public void setUpCharacter(int i)
     {
@@ -165,7 +211,7 @@ public class NetworkManager : MonoBehaviour
     }
 
     /*********************************************************************\
-    |   setUpMap : crée la carte passée en paramètre	      	     	   |
+    |   setUpMap : instancie la variable correspondant au nom de la map    |
     \*********************************************************************/
     public void setUpMap(int i)
     {
@@ -200,7 +246,7 @@ public class NetworkManager : MonoBehaviour
 
                 for (int i = 0; i < _hostList.Length; i++)
                 {   
-                    if (GUI.Button(new Rect(600, 100 + (110 * i), 150, 50), _gameName))
+                    if (GUI.Button(new Rect(600, 100 + (110 * i), 300, 50), _mapName + " nb players : " + (Network.connections.Length + 1)))
                     {
                         JoinServer(_hostList[i]);
                     }
@@ -230,9 +276,13 @@ public class NetworkManager : MonoBehaviour
         MasterServer.RegisterHost(_gameName, "4A Unity Project");
     }
 
+    /*********************************************************************\
+    |   StartServer : Envoie la demande de Spawn des joueurs		       |
+    \*********************************************************************/
     private void StartGame()
     {
-        _isReadytoInstanciate = true;
+        spawnPlayer();
+        networkView.RPC("ready_launch_game", RPCMode.All);
     }
 
 
@@ -241,16 +291,7 @@ public class NetworkManager : MonoBehaviour
     \**********************************************************************************/
     void OnServerInitialized()
     {
-        spawnPlayer();
-        /*
-        if (Network.isServer)
-        {
-            _canvasLobby.SetActive(true);
-            _lobbyName.GetComponent<Text>().text = _mapName;
-            _player1name.SetActive(true);
-            _player1name.GetComponent<Text>().text = GetName(_playerPrefab.name);
-        }
-        */
+        _listPlayers.Add(_playerPrefab.name);
     }
 
     /**********************************************************************************\
@@ -291,47 +332,51 @@ public class NetworkManager : MonoBehaviour
     \*********************************************************************/
     private void JoinServer(HostData hostData)
     {
-        /*if (Network.isServer)
-        {
-            networkView.RPC ("addPlayer", RPCMode.All);
-        }*/
         Network.Connect(hostData);
     }
 
     /*********************************************************************\
-    |   addPlayer : Ajoute + 1 au nombres de joueurs connectés			   |
-    \*********************************************************************/
-    [RPC] //not working
-    void addPlayer()
-    {
-        _numberOfPlayer += 1;
-    }
-
-    /*********************************************************************\
-    |   OnConnectedToServer : Crée un joueur à la connexion du client	   |
+    |   OnConnectedToServer : envoie le nom du joueur connecté au Serveur  |
     \*********************************************************************/
     void OnConnectedToServer()
     {
         _canvasPlayers.SetActive(false);
-        GUI.enabled = false;
-        spawnPlayer();
-        /*
-        _canvasPlayers.SetActive(false);
-        _canvasLobby.SetActive(true);
-        if (Network.isClient)
-		{
-            if (_player1name.active && !_player2name.active && !_player3name.active)
-            {
-                _player2name.SetActive(true);
-                _player2name.GetComponent<Text>().text = GetName(_playerPrefab.name);
-            }
-            else if (_player2name.active && _player1name.active && !_player3name.active)
-            {
-                _player3name.SetActive(true);
-                _player3name.GetComponent<Text>().text = GetName(_playerPrefab.name);
-            }
-		}
-        */
+        networkView.RPC("server_PlayerJoinRequest", RPCMode.Server, _playerPrefab.name);
+    }
+
+    /*********************************************************************\
+    |server_PlayerJoinRequest : RPC d'envoie du nom du joueur au serveur  |
+    \*********************************************************************/
+    [RPC]
+    void server_PlayerJoinRequest(string player)
+    {
+        _connected = true;
+        _listPlayers.Add(player);
+    }
+
+
+    /*********************************************************************\
+    |server_PlayerJoin : RPC d'envoie du tableau de joueurs aux clients    |
+    \*********************************************************************/
+    [RPC]
+    void server_PlayerJoin(string player)
+    {
+        List<string> newlist = new List<string>();
+        foreach (string pl in player.Split(','))
+        {
+            newlist.Add(pl);
+        }
+        _listPlayers = newlist;
+    }
+
+
+    /*********************************************************************\
+    |ready_launch_game : RPC qui indique que tous les clienst sont prêts   |
+    \*********************************************************************/
+    [RPC]
+    void ready_launch_game()
+    {
+        _isReadytoLaunch = true;
     }
 
     /*********************************************************************\
