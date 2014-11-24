@@ -6,15 +6,12 @@ using System.Collections.Generic;
 public class NetworkManager : MonoBehaviour
 {
     private const string _gameName = "Dungeon Trinity";
-
     private bool _isRefreshingHostList = false;
     private HostData[] _hostList;
     private int _numberOfPlayer = 0;
-
-    private GameObject _playerPrefab;
     private string _mapName = null;
 
-
+    private GameObject _playerPrefab;
     [SerializeField]
     private GameObject _warriorPrefab;
     [SerializeField]
@@ -26,14 +23,11 @@ public class NetworkManager : MonoBehaviour
     [SerializeField]
     private GameObject _canvasLobby;
 
-
     private bool _playerChoose = false;
     private bool _mapChoose = false;
     private bool _isReadytoLaunch = false;
-    private bool _isReadytoInstanciate = false;
     private bool _connected = false;
     private bool _lobbyToinit = true;
-
 
     private GameObject _buttonWarriorG;
     private GameObject _buttonPriestG;
@@ -53,69 +47,80 @@ public class NetworkManager : MonoBehaviour
 
     List<string> _listPlayers = new List<string>();
 
+    /*
+    private Component _lobbyNameComp;
+    private Component _player1nameComp;
+    private Component _player2nameComp;
+    private Component _player3nameComp; 
+    */
+
     /*********************************************************************\
-    |   Start : Initialisation								       		   |
+    |   Start : Initialisation des variables pour les boutons et UIText	   |
     \*********************************************************************/
 
     void Start()
-    {
+    { 
         RefreshHostList();
-
+         
         //Boutons pour Choisir son joueur
-        _buttonWarriorG = GameObject.Find("ButtonWarrior");
+        _buttonWarriorG = _canvasPlayers.transform.GetChild(0).gameObject;
         Button buttonWarrior = _buttonWarriorG.GetComponent<Button>();
         buttonWarrior.onClick.AddListener(() => { setUpCharacter(1); });
 
-        _buttonPriestG = GameObject.Find("ButtonPriest");
+        _buttonPriestG = _canvasPlayers.transform.GetChild(1).gameObject;
         Button buttonPriest = _buttonPriestG.GetComponent<Button>();
         buttonPriest.onClick.AddListener(() => { setUpCharacter(2); });
 
-        _buttonArcherG = GameObject.Find("ButtonArcher");
+        _buttonArcherG = _canvasPlayers.transform.GetChild(2).gameObject;
         Button buttonArcher = _buttonArcherG.GetComponent<Button>();
         buttonArcher.onClick.AddListener(() => { setUpCharacter(3); });
-
-
-
         
         //Boutons pour Choisir une Map
-        _buttonMap1G = GameObject.Find("ButtonMap1");
+        _buttonMap1G = _canvasPlayers.transform.GetChild(3).gameObject;
         Button buttonMap1 = _buttonMap1G.GetComponent<Button>();
         buttonMap1.onClick.AddListener(() => { setUpMap(1); });
 
-        /*
-        _buttonMap2G = GameObject.Find("ButtonMap2");
+        _buttonMap2G = _canvasPlayers.transform.GetChild(4).gameObject;
         Button buttonMap2 = _buttonMap2G.GetComponent<Button>();
         buttonMap2.onClick.AddListener(() => { setUpMap(2); });
 
-        _buttonMap3G = GameObject.Find("ButtonMap3");
+        _buttonMap3G = _canvasPlayers.transform.GetChild(5).gameObject;
         Button buttonMap3 = _buttonMap3G.GetComponent<Button>();
         buttonMap3.onClick.AddListener(() => { setUpMap(3); });
-        */
 
-        //Boutton pour chercher une partie
-        _buttonValG = GameObject.Find("ButtonValider");
+        //Bouton pour chercher une partie
+        _buttonValG = _canvasPlayers.transform.GetChild(6).gameObject;
         Button buttonVal = _buttonValG.GetComponent<Button>();
         buttonVal.onClick.AddListener(() => { StartServer(); });
+        _buttonValG.SetActive(false);
 
 
-        //Boutton pour Rechercher une Partie
-        _buttonSearchG = GameObject.Find("ButtonSearch");
+        //Bouton pour Rechercher une Partie
+        _buttonSearchG = _canvasPlayers.transform.GetChild(7).gameObject;
         Button buttonSearch = _buttonSearchG.GetComponent<Button>();
         buttonSearch.onClick.AddListener(() => { RefreshHostList(); });
+        _buttonSearchG.SetActive(false);
 
-        _lobbyName = GameObject.Find("LobbyName");
-        _player1name = GameObject.Find("Player1Lobby");
+        //Textes d'affichage des joueurs dans le lobby
+        _lobbyName = _canvasLobby.transform.GetChild(0).gameObject;
+        _player1name = _canvasLobby.transform.GetChild(1).gameObject;
         _player1name.SetActive(false);
-        _player2name = GameObject.Find("Player2Lobby");
+        _player2name = _canvasLobby.transform.GetChild(2).gameObject;
         _player2name.SetActive(false);
-        _player3name = GameObject.Find("Player3Lobby");
+        _player3name = _canvasLobby.transform.GetChild(3).gameObject;
         _player3name.SetActive(false);
-        _buttonValLobby = GameObject.Find("ButtonValLobby");
+        _buttonValLobby = _canvasLobby.transform.GetChild(4).gameObject;
         Button buttonValLobby = _buttonValLobby.GetComponent<Button>();
         buttonValLobby.onClick.AddListener(() => { StartGame(); });
         _buttonValLobby.SetActive(false);
         _canvasLobby.SetActive(false);
 
+        /* 
+        _lobbyNameComp = _lobbyName.GetComponent<Text>();
+        _player1nameComp = _player1name.GetComponent<Text>();
+        _player2nameComp = _player2name.GetComponent<Text>();
+        _player3nameComp = _player3name.GetComponent<Text>();
+        */
     }
 
     /*********************************************************************\
@@ -123,6 +128,7 @@ public class NetworkManager : MonoBehaviour
     \*********************************************************************/
     void Update()
     {
+        //rafaichis la liste des parties disponibles
         if (_isRefreshingHostList && MasterServer.PollHostList().Length > 0)
         {
             _isRefreshingHostList = false;
@@ -132,8 +138,7 @@ public class NetworkManager : MonoBehaviour
         //Affichage du lancement de partie si les choix du joueur sont terminés
         if (_mapChoose && _playerChoose)
         {
-            Vector3 buttonV_position = new Vector3(_buttonValG.transform.position.x, 50.0f, _buttonValG.transform.position.z);
-            _buttonValG.transform.position = buttonV_position;
+            _buttonValG.SetActive(true);
         }
 
         //Si on est le serveur et le nombre de joueurs est de 3
@@ -142,31 +147,28 @@ public class NetworkManager : MonoBehaviour
             _buttonValLobby.SetActive(true);
         }
 
+        //Si on est le client et que les autres joueurs sont dans la partie
         if (Network.isClient && _isReadytoLaunch)
         {
             spawnPlayer();
-            _isReadytoLaunch = false;
+            _isReadytoLaunch = false;          
         }
-
-        //boucle test listPlayer
-        foreach (string name in _listPlayers)
-        {
-            Debug.Log(name);
-        }
-
+        
+        //Envoi de RPC de synchro si on est serveur et qu'un client se connecte
         if (_connected && Network.isServer)
         {
+            networkView.RPC("addPlayerCount", RPCMode.All, _numberOfPlayer);
             string stringlistPlayer = string.Join(",", _listPlayers.ToArray());
-            networkView.RPC("server_PlayerJoin", RPCMode.Others, stringlistPlayer);
+            networkView.RPC("server_listPlayersSync", RPCMode.Others, stringlistPlayer);
             _connected = false;
-        }
-
+        } 
+        
+        //Initialisation du textes sur le canvas de lobby quand des joueurs rejoignent la partie
         if (_listPlayers.Count >= 1 && _lobbyToinit)
         {
             _canvasLobby.SetActive(true);
             if (_listPlayers.Count == 1)
-            {
-                _canvasLobby.SetActive(true);
+            { 
                 _lobbyName.GetComponent<Text>().text = _mapName;
                 _player1name.SetActive(true);
                 _player1name.GetComponent<Text>().text = GetName(_listPlayers[0]);
@@ -230,70 +232,6 @@ public class NetworkManager : MonoBehaviour
         _mapChoose = true;
     }
 
-    /*********************************************************************\
-    |   OnGUI Interface de création et de démarage d'une partie			  |
-    \*********************************************************************/
-    void OnGUI()
-    {
-        if (_playerChoose && _mapChoose)
-        {
-            if (MasterServer.PollHostList().Length > 0)
-            {
-                _hostList = MasterServer.PollHostList();
-
-                Vector3 buttonS_position = new Vector3(_buttonSearchG.transform.position.x, 50.0f, _buttonSearchG.transform.position.z);
-                _buttonSearchG.transform.position = buttonS_position;
-
-                for (int i = 0; i < _hostList.Length; i++)
-                {   
-                    if (GUI.Button(new Rect(600, 100 + (110 * i), 300, 50), _mapName + " nb players : " + (Network.connections.Length + 1)))
-                    {
-                        JoinServer(_hostList[i]);
-                    }
-                }
-            }
-        }
-    }
-
-
-    /*********************************************************************\
-    |   StartServer : Initialise un serveur avec 3 joueurs maximum		  |
-    \*********************************************************************/
-    private void StartServer()
-    {
-        _canvasPlayers.SetActive(false);
-
-        Network.InitializeServer(3, 25000, !Network.HavePublicAddress());
-
-        //Local MasterServer
-        /*
-        MasterServer.ipAddress = "127.0.0.1";
-        MasterServer.port = 23466;
-        Network.natFacilitatorIP = "127.0.0.1";
-        Network.natFacilitatorPort = 5005;
-        Network.InitializeServer(3, 5005,false);
-        */
-        MasterServer.RegisterHost(_gameName, "4A Unity Project");
-    }
-
-    /*********************************************************************\
-    |   StartServer : Envoie la demande de Spawn des joueurs		       |
-    \*********************************************************************/
-    private void StartGame()
-    {
-        spawnPlayer();
-        networkView.RPC("ready_launch_game", RPCMode.All);
-    }
-
-
-    /**********************************************************************************\
-    |   OnServerInitialized : Création du Gameobject player and le joueur se connecte  |
-    \**********************************************************************************/
-    void OnServerInitialized()
-    {
-        _listPlayers.Add(_playerPrefab.name);
-    }
-
     /**********************************************************************************\
     |   GetName : Renvoie le nom du perso choisi                                        |
     \**********************************************************************************/
@@ -314,6 +252,69 @@ public class NetworkManager : MonoBehaviour
         }
         return name;
     }
+
+    /*********************************************************************\
+    |   OnGUI Interface de création et de démarage d'une partie			  |
+    \*********************************************************************/
+    void OnGUI()
+    {
+        if (_playerChoose && _mapChoose)
+        {
+            if (MasterServer.PollHostList().Length > 0)
+            {
+                _hostList = MasterServer.PollHostList();
+                _buttonSearchG.SetActive(true);
+
+                for (int i = 0; i < _hostList.Length; i++)
+                {   
+                    if (GUI.Button(new Rect(600, 100 + (110 * i), 300, 50), _hostList[i].gameName + " nb players : " + _numberOfPlayer))
+                    {
+                        JoinServer(_hostList[i]); 
+                    }
+                }
+            }
+        }
+    }
+
+
+    /*********************************************************************\
+    |   StartServer : Initialise un serveur avec 3 joueurs maximum		  |         
+    |                                                                     |  
+    |    Local MasterServer Si celui d'unity est down :                   |
+    |                                                                     |
+    |    MasterServer.ipAddress = "127.0.0.1";                            |
+    |    MasterServer.port = 23466;                                       |      
+    |    Network.natFacilitatorIP = "127.0.0.1";                          |      
+    |    Network.natFacilitatorPort = 5005;                               |  
+    |    Network.InitializeServer(3, 5005,false);                         |  
+    |                                                                     |
+    \*********************************************************************/
+    private void StartServer()
+    {
+        _canvasPlayers.SetActive(false);
+        Network.InitializeServer(3, 25000, !Network.HavePublicAddress());
+        MasterServer.RegisterHost(_gameName, _mapName);
+    }
+
+    /*********************************************************************\
+    |   StartServer : Envoie la demande de Spawn des joueurs		       |
+    \*********************************************************************/
+    private void StartGame()
+    {
+        spawnPlayer();
+        networkView.RPC("ready_launch_game", RPCMode.All);
+    }
+
+
+    /**********************************************************************************\
+    |   OnServerInitialized : Création du Gameobject player and le joueur se connecte  |
+    \**********************************************************************************/
+    void OnServerInitialized()
+    {
+        _numberOfPlayer += 1;
+        _listPlayers.Add(_playerPrefab.name);
+    }
+
 
     /*********************************************************************\
     |   RefreshHosList : Rafraichis le tableau des parties disponibles	   |
@@ -341,25 +342,25 @@ public class NetworkManager : MonoBehaviour
     void OnConnectedToServer()
     {
         _canvasPlayers.SetActive(false);
-        networkView.RPC("server_PlayerJoinRequest", RPCMode.Server, _playerPrefab.name);
+        networkView.RPC("listPlayersAdd", RPCMode.Server, _playerPrefab.name);
     }
 
     /*********************************************************************\
     |server_PlayerJoinRequest : RPC d'envoie du nom du joueur au serveur  |
     \*********************************************************************/
     [RPC]
-    void server_PlayerJoinRequest(string player)
+    void listPlayersAdd(string player)
     {
         _connected = true;
         _listPlayers.Add(player);
     }
 
 
-    /*********************************************************************\
-    |server_PlayerJoin : RPC d'envoie du tableau de joueurs aux clients    |
-    \*********************************************************************/
+    /************************************************************************\
+    |server_listPlayersSync : RPC d'envoie du tableau de joueurs aux clients  |
+    \************************************************************************/
     [RPC]
-    void server_PlayerJoin(string player)
+    void server_listPlayersSync(string player)
     {
         List<string> newlist = new List<string>();
         foreach (string pl in player.Split(','))
@@ -368,7 +369,6 @@ public class NetworkManager : MonoBehaviour
         }
         _listPlayers = newlist;
     }
-
 
     /*********************************************************************\
     |ready_launch_game : RPC qui indique que tous les clienst sont prêts   |
@@ -380,12 +380,20 @@ public class NetworkManager : MonoBehaviour
     }
 
     /*********************************************************************\
+    |addPlayerCount : RPC qui ajoute +1 aux nombres de joueurs             |
+    \*********************************************************************/
+    [RPC]
+    void addPlayerCount(int nb)
+    {
+        _numberOfPlayer = nb + 1;
+    }
+
+    /*********************************************************************\
     |   spawnPlayer : Crée le gameObject du joueur a partir d'un prefab	   |
     \*********************************************************************/
     private void spawnPlayer()
-    {
+    {   
         Network.Instantiate(_playerPrefab, Vector3.up * 5, Quaternion.identity, 0);
-
     }
 
 }
