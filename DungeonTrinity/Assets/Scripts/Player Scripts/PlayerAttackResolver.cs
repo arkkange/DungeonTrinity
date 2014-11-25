@@ -6,8 +6,8 @@ public class PlayerAttackResolver : MonoBehaviour {
 
     List<Transform> _TransformsHits = new List<Transform>();
 
-    [SerializeField]
-    Transform _myAttacks;   //to change the direction where the skill is casting
+    //[SerializeField]
+    //Transform _myAttacks;   //to change the direction where the skill is casting
 
     [SerializeField]
     Transform _myCircle;
